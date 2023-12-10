@@ -1,0 +1,309 @@
+#include <iostream>
+#include <string>
+#include <stdlib.h>
+#include "BankingService.h"
+#include <vector>
+#include "SecurityService.h"
+#include <stdexcept>
+
+
+using namespace std;
+
+
+// function declaration.
+void showTitleMessage();
+void showBankingService();
+void performBankingService(int service);
+
+
+int main()
+{
+
+
+
+
+    while(true)
+    {
+
+
+        //1. show title
+
+        try
+        {
+            showTitleMessage();
+
+            //2. display application functions
+            showBankingService();
+
+            //3. choose function
+            int userInput;
+            cin >> userInput;
+            performBankingService(userInput);
+
+
+
+        }
+        catch(runtime_error err)
+        {
+
+
+            cout <<"error"<< err.what() <<endl;
+
+
+
+            return -1;
+
+        }
+
+
+    }
+
+
+
+
+
+
+    return 0;
+}
+
+
+// function definition
+void showTitleMessage()
+{
+
+    cout <<"********************************************************************"<<endl;
+    cout <<"*********** THIS IS THE CORTEX SIMPLE BANK MANAGEMENT SYSTEM *******"<<endl;
+    cout <<"********************************************************************"<<endl;
+
+}
+
+void showBankingService()
+{
+
+    cout <<"Cortex Banking Service :"<<endl;
+    cout <<"1. Create Account"<<endl;
+    cout <<"2. Deposit Money"<<endl;
+    cout <<"3. Withdraw Money"<<endl;
+    cout <<"4. Perform Account Inquiry"<<endl;
+    cout <<"5. Show All Accounts"<<endl;
+    cout <<"6. Close Account"<<endl;
+
+    cout <<"Enter ( 1 - 6 ) to select :"<<endl;
+
+}
+
+void performBankingService(int s)
+{
+
+
+
+    string account_number, customer_name, customer_address, password;
+    double amount;
+
+
+
+        switch (s)
+        {
+
+        case 1:
+        {
+
+            double initial_amount;
+            cout <<"1. Create Account Service"<<endl;
+
+            cout <<"Enter name:"<<endl;
+            cin >> customer_name;
+
+
+
+            cout <<"Enter address:"<<endl;
+            cin >> customer_address;
+
+
+
+            cout <<"Initial deposit amount : GHC";
+            cin >> initial_amount;
+
+
+            cout <<"Create Password:"<<endl;
+            cin >> password;
+
+
+            // call createAccount Operation.
+            BankingService::createAccount(customer_name, customer_address, initial_amount, password);
+
+        }
+        break;
+        case 2:
+
+
+            cout <<"2. Deposit Money"<<endl;
+            cout <<"Enter account Number:"<<endl;
+            cin >> account_number;
+            cout <<"Amount (GHS): "<<endl;
+            cin >> amount;
+            BankingService::depositMoney(amount, account_number);
+
+            break;
+        case 3:
+
+        {
+
+
+            cout <<"3. Withdraw Money"<<endl;
+            cout <<"Enter account Number:"<<endl;
+            cin >> account_number;
+
+            cout <<"Enter password:"<<endl;
+            cin >> password;
+            std::string decrypt_password;
+            decrypt_password  = SecurityService::doPasswordDecryption(account_number);
+            if(password != decrypt_password)
+            {
+
+                cout <<"invalid password!"<<endl;
+
+                cout <<"Cash Withdrawal request could not be fulfilled"<<endl;
+
+            }
+            else
+            {
+                cout <<"Amount (GHS): "<<endl;
+                cin >> amount;
+                BankingService::doWithdrawal(account_number, amount);
+            }
+
+
+        }
+
+        break;
+        case 4:
+        {
+
+            cout <<endl;
+            cout <<"4. Account inquiry"<<endl;
+            cout <<"Enter account Number:"<<endl;
+            cin >> account_number;
+            AccountInquiryResponse response = BankingService::doAccountInquiry(account_number);
+
+            if(response.getStatus()=="failed")
+            {
+
+
+                std::cout <<response.getResponseMsg()<<std::endl;
+
+            }
+            else if(response.getStatus()=="success")
+            {
+
+
+
+                // credit account.
+
+                std::cout <<response.getResponseMsg()<<std::endl;
+                std::cout<<"Name:"<<response.getAccount()->getCustomerName()<<std::endl;
+                std::cout <<"Account Number:"<<response.getAccount()->getAccountNumber()<<std::endl;
+                std::cout <<"Address:"<<response.getAccount()->getCustomerAddress()<<std::endl;
+                std::cout  <<"Account Balance (GHS):"<<response.getAccount()->getBalance()<<std::endl;
+                std::cout <<"Account Status:";
+                if(response.getAccount()->getAccountStatus() == 'O')
+                {
+                    std::cout <<"ACTIVE";
+                }
+
+                std::cout << std::endl;
+
+
+
+            }
+
+
+            cout <<endl;
+
+        }
+
+        break;
+
+        case 5:
+        {
+
+
+            cout <<"5. List All Accounts"<<endl;
+            std::vector<Account*> accounts =   BankingService::getAllAccounts();
+
+            for(int i =0 ; i < accounts.size(); i++)
+            {
+
+
+                std::cout<<"Name:"<<accounts[i]->getCustomerName()<<std::endl;
+                std::cout <<"Account Number:"<<accounts[i]->getAccountNumber()<<std::endl;
+                std::cout <<"Address:"<<accounts[i]->getCustomerAddress()<<std::endl;
+                std::cout  <<"Account Balance (GHS):"<<accounts[i]->getBalance()<<std::endl;
+                std::cout <<"Account Status:";
+                if(accounts[i]->getAccountStatus() == 'O')
+                {
+                    std::cout <<"ACTIVE";
+                }
+                if(accounts[i]->getAccountStatus()  == 'C')
+                {
+                    std::cout <<"CLOSED";
+                }
+
+                std::cout << std::endl;
+                std::cout << std::endl;
+
+
+            }
+
+
+            std::cout << std::endl;
+
+
+
+
+        }
+
+
+        break;
+        case 6 :
+        {
+
+
+            cout <<"6. Close Account"<<endl;
+            cout <<"Enter account Number:"<<endl;
+            cin >> account_number;
+            cout <<"Enter password:"<<endl;
+            cin >> password;
+            std::string decrypt_password;
+            decrypt_password  = SecurityService::doPasswordDecryption(account_number);
+            if(password != decrypt_password)
+            {
+
+                cout <<"invalid password!"<<endl;
+                cout <<"Account Closure request could not be fulfilled"<<endl;
+
+            }
+            else
+            {
+
+                BankingService::closeAccount(account_number);
+
+            }
+
+
+
+        }
+
+
+        break;
+
+        default:
+
+            cout <<"No Service Available for the input entered"<<endl;
+
+        }
+
+
+
+
+}
